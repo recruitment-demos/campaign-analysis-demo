@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פרופיל דמוגרפי — ניתוח קמפיין גיוס (הדגמה)</title>
+<link rel="icon" href="assets/icon.png">
+<style>:root {
+  --bg: #0f1729;
+  --panel: #1a2440;
+  --panel-soft: #141d33;
+  --line: #2a3550;
+  --line-soft: #26314e;
+  --ink: #e8edf5;
+  --ink-mid: #9fb3d4;
+  --ink-soft: #6f83a6;
+  --accent: #4F8EF7;
+  --accent-deep: #25406b;
+  --ok: #22c39a;
+  --warn: #FFC857;
+  --err: #f97362;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  direction: rtl;
+}
+
+/* ---------- פריסה: סרגל צד + תוכן ---------- */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 224px; flex: 0 0 224px; background: #111a2e;
+  border-inline-start: 1px solid var(--line); display: flex;
+  flex-direction: column; padding: 18px 13px;
+}
+.brand { display: flex; align-items: center; gap: 11px; padding: 0 5px 20px; }
+.brand-mark {
+  width: 40px; height: 40px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), #2f6fd0);
+  display: grid; place-items: center; font-size: 19px; font-weight: 700; color: #fff;
+}
+.brand-text strong { font-size: 14.5px; display: block; color: #fff; }
+.brand-text span { font-size: 11px; color: #8ba0c4; }
+
+.side-nav { display: flex; flex-direction: column; gap: 5px; }
+.side-nav a {
+  display: flex; align-items: center; gap: 10px; padding: 11px 13px;
+  border-radius: 10px; font-size: 14px; color: #cbd5e1; text-decoration: none;
+  transition: .15s; border: 1px solid transparent;
+}
+.side-nav a:hover { background: rgba(255,255,255,.06); color: #fff; }
+.side-nav a.on {
+  background: var(--accent-deep); color: #fff; font-weight: 600;
+  border-color: var(--accent);
+}
+.side-nav .ico { font-size: 15px; opacity: .85; width: 18px; text-align: center; }
+.side-foot {
+  margin-top: auto; padding: 16px 6px 0; font-size: 11px; color: var(--ink-soft);
+  line-height: 1.65; border-top: 1px solid rgba(255,255,255,.07);
+}
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ---------- כותרת ---------- */
+header {
+  background: linear-gradient(120deg, #1e293b, #0f1729);
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.head-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px; flex-wrap: wrap;
+}
+.head-main { display: flex; align-items: center; gap: 13px; }
+.head-mark {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), #2f6fd0);
+  display: grid; place-items: center; font-size: 20px; font-weight: 700;
+  color: #fff; flex: 0 0 42px;
+}
+header h1 { margin: 0; font-size: 20px; }
+header .sub { color: #8ba0c4; font-size: 12px; margin-top: 3px; }
+.head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- לשוניות המסך ---------- */
+.nav { display: flex; gap: 8px; flex-wrap: wrap; padding: 13px 28px 0; }
+.nav a {
+  background: var(--panel); color: #cfe0f7; border: 1px solid #33436b;
+  border-radius: 12px 12px 0 0; padding: 10px 17px; cursor: pointer;
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  border-bottom: none; transition: .15s; text-decoration: none; display: inline-block;
+}
+.nav a:hover { background: #20304f; color: #fff; }
+.nav a.on { background: var(--accent-deep); color: #fff; border-color: var(--accent); }
+
+.wrap {
+  padding: 20px 28px 50px; margin: 0 auto; width: 100%;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- כותרת קמפיין ---------- */
+.camp-head { display: flex; flex-direction: column; gap: 5px; }
+.camp-head .ctitle { font-size: 21px; font-weight: 700; color: #fff; }
+.camp-head .csub { font-size: 13.5px; color: #8ba0c4; }
+.camp-head .cdates {
+  font-size: 12.5px; color: var(--accent); font-weight: 600;
+}
+.camp-head .cdesc {
+  font-size: 12.5px; color: var(--ink-mid); margin-top: 4px;
+  max-width: 720px; line-height: 1.6;
+}
+
+/* ---------- מגירת סינון ---------- */
+.drawer-toggle {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 10px; padding: 9px 15px; font-size: 13px; font-weight: 600;
+  color: var(--ink-mid); user-select: none;
+}
+.drawer-toggle:hover { color: #fff; border-color: var(--accent); }
+.drawer-toggle .lines { display: inline-flex; flex-direction: column; gap: 3px; }
+.drawer-toggle .lines i {
+  display: block; width: 16px; height: 2px; background: currentColor; border-radius: 2px;
+}
+.drawer { display: none; margin-top: 12px; }
+.drawer.open { display: block; }
+
+/* ---------- מחוון תאריכים ---------- */
+.slider-box { display: flex; flex-direction: column; gap: 7px; flex: 1 1 320px; }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-row input[type=range] {
+  flex: 1; accent-color: var(--accent); background: transparent;
+}
+.slider-val {
+  font-size: 12px; color: var(--ink-mid); font-variant-numeric: tabular-nums;
+  min-width: 82px; text-align: center;
+}
+
+/* ---------- מפת חום ---------- */
+.mapcard { padding: 13px 16px; }
+.mapsvg {
+  /* הרוחב והגובה נקבעים כתכונות על האלמנט עצמו ב-JS. כאן רק ההגבלה
+     למסך צר — SVG עם viewBox בלבד נמתח לרוחב המכל, וזה מה שניפח
+     את המפה. */
+  display: block; margin: 0 auto; max-width: 100%; height: auto;
+  background: #0d1424; border-radius: 10px;
+}
+.maplegend {
+  display: flex; align-items: center; gap: 14px; margin-top: 10px;
+  flex-wrap: wrap; font-size: 11.5px; color: var(--ink-mid);
+}
+.maplegend .swatch {
+  display: inline-block; width: 13px; height: 13px; border-radius: 3px;
+  margin-inline-end: 5px; vertical-align: -2px;
+}
+.maprow {
+  /* שתי מפות זו לצד זו, על כל רוחב המסך. גובה המפה נגזר מגובה
+     החלון, ולכן מסך רחב נותן מפה גדולה בלי למתוח אותה לצדדים. */
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px; align-items: start;
+}
+.maphead {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 9px;
+}
+.maphead .bartitle { margin-bottom: 0; }
+.mapzoom { display: inline-flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.mapzoom-btn {
+  width: 26px; height: 26px; border-radius: 7px; cursor: pointer;
+  background: var(--panel); border: 1px solid #33436b; color: #cfe0f7;
+  font-size: 15px; font-weight: 700; line-height: 1; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.mapzoom-btn:hover:not(:disabled) { border-color: var(--accent); color: #fff; }
+.mapzoom-btn:disabled { opacity: .35; cursor: default; }
+.mapzoom-val {
+  font-size: 11px; color: var(--ink-soft); min-width: 34px; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 720px) { .maprow { grid-template-columns: 1fr; } }
+
+/* ---------- גרפי עוגה ---------- */
+.pies { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 13px; }
+.piecard { padding: 13px 14px; text-align: center; }
+.piecard .bartitle { text-align: right; }
+.pielegend { font-size: 11.5px; color: var(--ink-mid); text-align: right; margin-top: 8px; }
+.pielegend div { display: flex; align-items: center; gap: 6px; padding: 1.5px 0; }
+.pielegend .swatch {
+  width: 11px; height: 11px; border-radius: 3px; display: inline-block; flex: 0 0 11px;
+}
+.pielegend .pv { margin-inline-start: auto; font-variant-numeric: tabular-nums;
+                 color: var(--ink-soft); }
+
+/* ---------- משפך ---------- */
+.funnelcard { padding: 16px; }
+.funnelsvg { width: 100%; max-width: 780px; height: auto; display: block; margin: 0 auto; }
+
+/* ---------- שורת אחוזים ראשית ---------- */
+.headline {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 13px; margin-bottom: 16px;
+}
+.headline .hitem {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 14px; text-align: center;
+}
+.headline .hval {
+  font-size: 34px; font-weight: 700; color: #fff; line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.headline .htxt {
+  font-size: 12.5px; color: var(--ink-mid); margin-top: 7px; line-height: 1.5;
+}
+
+/* ---------- תוויות בגרפים ---------- */
+.bbar--labelled {
+  /* האחוז יושב בתוך הצבע, בתחילתו. אין כאן רוחב מזערי: עמודה קצרה
+     חייבת להישאר קצרה, אחרת הגרף משקר על הפרופורציה. תווית שאינה
+     נכנסת מועברת אל מחוץ לצבע ב-fitBarLabels. */
+  display: flex; align-items: center; justify-content: flex-start;
+  overflow: hidden; white-space: nowrap; flex: 0 0 auto;
+}
+.bpct {
+  padding-inline-start: 8px; color: #fff; font-size: 11px; font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,.45); white-space: nowrap;
+}
+/* אין מקום בפנים — האחוז יושב מיד אחרי הצבע, בצבעו */
+.bpct--out {
+  padding-inline-start: 0; text-shadow: none; flex: 0 0 auto;
+  font-size: 11px; font-weight: 700;
+}
+.tval { fill: #cfe0f7; font-size: 9.5px; text-anchor: middle; font-weight: 600; }
+
+/* ---------- סרגל ייצוא ---------- */
+.export-bar { display: flex; justify-content: flex-start; margin-bottom: 12px; }
+
+/* ---------- עלות לליד לפי פלטפורמה ---------- */
+/* כרטיסי העלות לליד תמיד בשורה אחת — כשהם נשברו לשתי שורות היה
+   נדמה שהאחרון שייך למשהו אחר. הם מצטמצמים יחד ולא נשברים. */
+.cpl-row { display: flex; gap: 12px; flex-wrap: nowrap; }
+.cpl-card {
+  flex: 1 1 0; min-width: 0; background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px; padding: 16px 14px; text-align: center;
+}
+.cpl-card .cpl-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* השורה התחתונה נשברת לשתי שורות במקום להיחתך באמצע מספר */
+.cpl-card .cpl-foot { line-height: 1.45; }
+.cpl-card--main {
+  background: linear-gradient(120deg, var(--accent-deep), var(--panel));
+  border-color: var(--accent);
+}
+.cpl-card .cpl-name { font-size: 13px; color: var(--ink-mid); font-weight: 600; }
+.cpl-card .cpl-value {
+  font-size: 32px; font-weight: 700; color: #fff; margin: 8px 0 4px;
+  font-variant-numeric: tabular-nums; line-height: 1.05;
+}
+.cpl-card--main .cpl-value { font-size: 36px; }
+.cpl-card .cpl-foot { font-size: 10.5px; color: var(--ink-soft); }
+
+/* ---------- מקרא קווי מגמה ---------- */
+.linelegend {
+  display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px;
+  font-size: 12px; color: var(--ink-mid);
+}
+.lineitem { display: inline-flex; align-items: center; gap: 6px; }
+.lineswatch { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+
+/* ---------- צ'יפים לבחירת קמפיין ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  background: var(--panel); border: 1px solid #33436b; border-radius: 12px;
+  padding: 10px 15px; font-size: 13.5px; color: var(--ink-mid);
+  transition: .15s; user-select: none; font-family: inherit;
+}
+.chip:hover { border-color: var(--accent); color: #fff; }
+.chip.on { background: var(--accent-deep); border-color: var(--accent); color: #fff; }
+.chip .cname { font-weight: 600; }
+.chip .cnum {
+  font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+}
+.chip.on .cnum { color: #cfe0f7; }
+.chip .mark {
+  width: 15px; height: 15px; border-radius: 4px; border: 1px solid #4a5b85;
+  display: grid; place-items: center; font-size: 10px; flex: 0 0 15px;
+}
+.chip.on .mark { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ---------- מחוון טווח: קו אחד עם שני עיגולים ---------- */
+.rangebox {
+  background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 16px; padding: 14px 20px 16px; margin-bottom: 16px;
+}
+.range-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 4px;
+}
+.range-date {
+  font-size: 13.5px; font-weight: 700; color: #cfe0f7;
+  background: var(--panel); border: 1px solid #33436b;
+  border-radius: 8px; padding: 4px 12px; white-space: nowrap;
+}
+.range-line-label { font-size: 11.5px; color: var(--ink-soft); }
+
+.range-track { position: relative; height: 34px; }
+.range-track::before {
+  content: ''; position: absolute; inset-inline: 0; top: 15px; height: 4px;
+  background: #26314e; border-radius: 3px;
+}
+.range-fill {
+  position: absolute; top: 15px; height: 4px; background: var(--accent);
+  border-radius: 3px;
+}
+.range-input {
+  position: absolute; inset-inline: 0; top: 4px; width: 100%; height: 26px;
+  margin: 0; background: transparent; -webkit-appearance: none; appearance: none;
+  pointer-events: none; border: 0; padding: 0;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none; pointer-events: auto; cursor: grab;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; border: 4px solid var(--accent);
+  box-shadow: 0 1px 5px rgba(0,0,0,.45);
+}
+.range-input::-moz-range-thumb {
+  pointer-events: auto; cursor: grab;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; border: 4px solid var(--accent);
+  box-shadow: 0 1px 5px rgba(0,0,0,.45);
+}
+.range-input::-moz-range-track { background: transparent; border: 0; }
+
+.months { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.month {
+  background: var(--panel); color: var(--ink-soft); border: 1px solid #33436b;
+  border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: .12s;
+}
+.month:hover { color: #fff; border-color: var(--accent); }
+.month.on { background: var(--accent-deep); color: #fff; border-color: var(--accent); }
+.month--all { margin-inline-start: auto; }
+
+/* צ'יפ ללא סימן וי — הבחירה מסומנת בהדגשה בלבד */
+.chip--plain { opacity: .55; }
+.chip--plain.on { opacity: 1; font-weight: 700; }
+
+/* נקודת הצבע של הקמפיין — אותו צבע בצ'יפ, בטבלה ובגרף */
+.cdot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  flex: 0 0 auto; margin-inline-end: 7px; vertical-align: -1px;
+}
+
+/* ---------- בורר צבעים ---------- */
+.swatches { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.swatch {
+  width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; position: relative; display: inline-block;
+}
+.swatch:hover { border-color: #fff; }
+.swatch.on { border-color: #fff; box-shadow: 0 0 0 3px rgba(79,142,247,.5); }
+.swatch input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.swatch-hex { width: 120px !important; margin-inline-start: 8px; }
+
+/* ---------- אזור גרירה ---------- */
+.dropzone {
+  border: 2px dashed #3a4b73; border-radius: 12px; background: #131c31;
+  padding: 20px; text-align: center; transition: .15s;
+}
+.dropzone.over { border-color: var(--accent); background: #17223c; }
+.dropzone .drop-text { font-size: 13.5px; color: var(--ink-mid); margin-bottom: 12px;
+                       line-height: 1.7; }
+
+.load-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+/* ---------- רשת טבלאות הטעינה ---------- */
+/* תת-שורת ניווט בתוך מסך — למשל בהגדרות הקמפיין */
+.subnav { margin: 0 0 4px; }
+.subnav .nav { padding: 0 0 0; border-bottom: 1px solid var(--line); }
+.subnav .nav a { border-radius: 10px 10px 0 0; padding: 8px 15px; font-size: 13px; }
+
+/* בחירת סוג נתונים: שורת כפתורים, ומתחתיה הסוג שנבחר בלבד */
+.tpicker { margin: 6px 0 4px; }
+.tchips {
+  display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px;
+  padding-bottom: 11px; border-bottom: 1px solid var(--line);
+}
+.tchip {
+  background: var(--panel); border: 1px solid #33436b; border-radius: 10px;
+  padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: #cfe0f7;
+  cursor: pointer; font-family: inherit; transition: .15s; white-space: nowrap;
+}
+.tchip:hover { border-color: var(--accent); color: #fff; }
+.tchip.on {
+  background: var(--accent-deep); border-color: var(--accent); color: #fff;
+}
+.tpanels { display: block; }
+.tpanels .tpanel[hidden] { display: none; }
+.tpanel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
+}
+.tpanel-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; padding: 11px 14px; background: var(--panel-soft);
+  border-bottom: 1px solid var(--line);
+}
+.tpanel-name { font-size: 13.5px; font-weight: 700; color: #fff; }
+.tpanel-count { font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+.tpanel-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+.tpanel-body .note { margin: 0; min-height: 32px; }
+.tpanel-form {
+  border: 1px dashed #3a4b73; border-radius: 9px; padding: 10px;
+  background: #131c31; transition: .15s;
+}
+.tpanel-form.over { border-color: var(--accent); background: #17223c; }
+.tpanel-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.tpanel-actions .act-btn { margin: 0; }
+.tpanel-actions input[type=file] { flex: 1 1 130px; min-width: 0; font-size: 11px; }
+.drop-hint { font-size: 10.5px; color: var(--ink-soft); }
+/* עשר שורות נכנסות בלי גלילה — זו הנקודה של התצוגה המקדימה */
+.tpanel-preview { max-height: 460px; overflow: auto; }
+.tpanel-preview-title {
+  font-size: 11.5px; color: var(--ink-soft); margin-bottom: 6px;
+}
+.tpanel-pick {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-top: 8px;
+}
+.tpanel-pick input[type=file] { flex: 1 1 220px; min-width: 0; font-size: 11.5px; }
+.tpanel-preview table.t { font-size: 11.5px; }
+.tpanel-preview table.t th, .tpanel-preview table.t td { padding: 5px 8px; }
+
+/* ---------- חלון צף ---------- */
+.modal {
+  position: fixed; inset: 0; background: rgba(6,10,20,.68); z-index: 60;
+  display: none; align-items: center; justify-content: center; padding: 26px;
+}
+.modal.open { display: flex; }
+.modal-box {
+  background: var(--panel); border: 1px solid #33436b; border-radius: 16px;
+  width: 100%; max-width: 720px; max-height: 82vh; display: flex;
+  flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--line);
+}
+.modal-title { font-size: 15px; font-weight: 700; color: #fff; }
+.modal-x {
+  background: transparent; border: 0; color: var(--ink-mid); font-size: 18px;
+  cursor: pointer; padding: 2px 8px; border-radius: 6px;
+}
+.modal-x:hover { color: #fff; background: rgba(255,255,255,.08); }
+.modal-body { padding: 18px; overflow-y: auto; }
+
+/* ---------- שורת טעינה ---------- */
+.load-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.load-slot {
+  background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 12px; padding: 13px 14px;
+}
+.load-slot .sname { font-size: 13px; font-weight: 700; color: #cfe0f7;
+                    margin-bottom: 4px; }
+.load-slot .snote { font-size: 11px; color: var(--ink-soft); margin-bottom: 9px;
+                    line-height: 1.5; min-height: 30px; }
+.load-slot input[type=file] { font-size: 11.5px; }
+.load-slot .act-btn { margin-top: 10px; width: 100%; text-align: center;
+                      padding: 7px 10px; font-size: 12.5px; }
+
+/* ---------- הדגשות ---------- */
+.insight {
+  background: rgba(79,142,247,.08); border: 1px solid rgba(79,142,247,.25);
+  border-radius: 11px; padding: 12px 15px; font-size: 13px; color: #cfe0f7;
+  line-height: 1.7;
+}
+.insight b { color: #fff; }
+.insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+
+.delta-up { color: var(--ok); font-weight: 600; }
+.delta-down { color: var(--err); font-weight: 600; }
+.delta-flat { color: var(--ink-soft); }
+
+/* ---------- כותרות משנה ---------- */
+h2 {
+  font-size: 15px; color: #b9c8e2; margin: 24px 0 12px;
+  border-right: 3px solid var(--accent); padding-right: 10px;
+}
+h2:first-child { margin-top: 4px; }
+h3 { font-size: 13.5px; color: #cfe0f7; margin: 18px 0 8px; }
+
+/* ---------- כרטיסי KPI ---------- */
+.kpis { display: flex; flex-wrap: wrap; gap: 14px; }
+.tile {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 15px 18px; flex: 1 1 175px; min-width: 175px;
+}
+.tile .val { font-size: 29px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile .lbl { color: var(--ink-mid); font-size: 13px; margin-top: 5px; line-height: 1.4; }
+.tile .foot { color: var(--ink-soft); font-size: 11px; margin-top: 7px; }
+.tile.total {
+  flex: 1 1 100%; background: linear-gradient(120deg, var(--accent-deep), var(--panel));
+}
+.tile.total .val { font-size: 38px; }
+
+/* ---------- כרטיסים וטבלאות ---------- */
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 14px; padding: 13px 16px;
+}
+.card + .card { margin-top: 14px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th {
+  text-align: right; color: #8ba0c4; font-weight: 600;
+  padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+table.t td { padding: 7px 6px; border-bottom: 1px solid #202b46; }
+table.t tr:hover td { background: rgba(79,142,247,.05); }
+table.t td.num { color: #cfe0f7; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+
+/* טבלת ההשוואה: כל מדד גוש בפני עצמו — שורת כותרת, רקע משלו,
+   וקו שסוגר אותו. בלי זה כל המדדים נשפכו לרשימה אחת ארוכה. */
+table.t tr.grp--a td { background: rgba(79,142,247,.05); }
+table.t tr.grp--b td { background: rgba(34,195,154,.05); }
+table.t tr.grp-head td {
+  font-weight: 700; color: #fff; font-size: 12.5px;
+  padding: 10px 8px 7px; letter-spacing: .2px;
+  border-top: 2px solid var(--line);
+}
+table.t tr.grp--a.grp-head td { border-inline-start: 3px solid #4F8EF7; }
+table.t tr.grp--b.grp-head td { border-inline-start: 3px solid #22c39a; }
+table.t tr.grp-last td { border-bottom: 2px solid var(--line); }
+table.t td.grp-key { padding-inline-start: 18px; color: #cfe0f7; }
+
+/* ---------- גרפי עמודות ---------- */
+.barstack {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 14px; margin: 6px 0 4px;
+}
+.barcard { padding: 13px 16px; }
+/* כרטיס פלטפורמה נושא את צבעה בפס הצד ובקו הכותרת */
+.platcard { border-inline-start: 3px solid var(--accent); }
+.cpl-card--tinted { border-top: 3px solid var(--accent); }
+.bartitle {
+  font-size: 13px; font-weight: 700; color: #cfe0f7; margin-bottom: 9px;
+  border-right: 3px solid var(--accent); padding-right: 9px;
+}
+table.bars { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.bars td { border: none; padding: 3px 4px; vertical-align: middle; }
+td.blab {
+  /* רחב מספיק לתווית ארוכה כמו "שבוע 11 (04/04–11/04)" — תווית
+     חתוכה באמצע אינה שווה דבר. */
+  width: 158px; max-width: 158px; color: #cfe0f7; font-size: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* עמודת הצבע לוקחת את כל מה שנשאר — התווית והכמות בלבד קבועות,
+   ולכן הצבע נמשך כמעט עד סוף השורה. */
+td.bwrap { width: auto; }
+.btrack { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.bbar {
+  height: 19px; border-radius: 4px; min-width: 3px; transition: width .25s;
+}
+td.bval {
+  width: 66px; text-align: left; color: var(--ink-mid); font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.tnote { color: var(--ink-soft); font-size: 11px; margin-top: 7px; line-height: 1.6; }
+/* כמות הערכים הריקים — יורדת מהגרף אך נשארת גלויה מתחתיו */
+.emptynote {
+  color: var(--ink-soft); font-size: 10.5px; margin-top: 8px;
+  padding-top: 7px; border-top: 1px dashed #2b3757;
+}
+
+/* ---------- גרף מגמה ---------- */
+.trendcard { padding: 13px 16px; margin: 14px 0 4px; }
+.tsvg { width: 100%; height: auto; display: block; margin-top: 4px; overflow: visible; }
+.tgrid { stroke: var(--line); stroke-width: 1; }
+.tylab { fill: var(--ink-soft); font-size: 10px; text-anchor: end; }
+.txlab { fill: var(--ink-soft); font-size: 10px; text-anchor: middle; }
+
+/* ---------- סרגל בקרה ---------- */
+.ctl {
+  background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 16px; padding: 12px 16px; display: flex;
+  align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ctl-dates { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ctl-label { font-size: 12.5px; color: var(--ink-mid); font-weight: 600; }
+.ctl-sep { color: var(--ink-soft); font-size: 12px; }
+.ctl input[type=date] {
+  background: #0d1424; border: 1px solid #33436b; border-radius: 7px;
+  color: var(--ink); padding: 6px 9px; font-family: inherit; font-size: 12.5px;
+}
+.ctl input[type=date]:focus { outline: none; border-color: var(--accent); }
+.ctl-state { font-size: 12.5px; color: var(--ink-mid); margin-inline-start: auto; }
+.ctl-state.filtered { color: var(--warn); font-weight: 600; }
+
+/* ---------- פאנל מסננים ---------- */
+.fbox {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px;
+}
+.fgrp {
+  background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 12px; padding: 0 0 8px;
+}
+.ghead {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 9px 12px; border-bottom: 1px solid var(--line-soft);
+  background: #182240; border-radius: 12px 12px 0 0;
+}
+.ghead .gname { font-size: 12.5px; font-weight: 700; color: #cfe0f7; }
+.ghead .gcnt { font-size: 10.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.gbtns { display: flex; gap: 4px; padding: 7px 12px 4px; }
+.mini {
+  flex: 1; background: #20304f; color: var(--ink-mid); border: 1px solid #33436b;
+  border-radius: 7px; padding: 4px 0; cursor: pointer; font-family: inherit;
+  font-size: 11px; transition: .12s;
+}
+.mini:hover { color: #fff; border-color: var(--accent); background: #27395e; }
+.mini.reset:hover { border-color: var(--warn); color: var(--warn); }
+.scroll { max-height: 230px; overflow-y: auto; padding: 2px 12px 0; }
+.scroll::-webkit-scrollbar { width: 7px; }
+.scroll::-webkit-scrollbar-thumb { background: #33436b; border-radius: 4px; }
+label.chk {
+  display: flex; align-items: center; gap: 6px; font-size: 12.5px;
+  cursor: pointer; padding: 2.5px 0; color: var(--ink);
+}
+label.chk:hover { color: #fff; }
+label.chk .cnt {
+  color: var(--ink-soft); font-size: 10.5px; margin-right: auto;
+  font-variant-numeric: tabular-nums;
+}
+label.chk input { accent-color: var(--accent); }
+
+/* ---------- כפתורים ---------- */
+.act-btn {
+  background: var(--accent-deep); color: #fff; border: 1px solid var(--accent);
+  border-radius: 10px; padding: 9px 17px; cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 600; transition: .15s; text-decoration: none;
+  display: inline-block;
+}
+.act-btn:hover { background: #2d4d80; transform: translateY(-1px); }
+.act-btn.ghost { background: transparent; border-color: #33436b; color: var(--ink-mid); }
+.act-btn.ghost:hover { color: #fff; border-color: var(--accent); background: #20304f; }
+.act-btn.go { background: #1f7a4d; border-color: #2fa269; }
+.act-btn.go:hover { background: #248c58; }
+.act-btn.small { padding: 5px 12px; font-size: 12px; }
+button.act-btn { font-family: inherit; }
+
+/* ---------- כרטיסי קמפיין ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 13px; }
+a.camp {
+  display: block; text-decoration: none; color: inherit; background: var(--panel);
+  border: 1px solid #33436b; border-radius: 14px; padding: 16px 18px; transition: .15s;
+}
+a.camp:hover { border-color: var(--accent); background: #20304f; transform: translateY(-2px); }
+a.camp .cname { font-size: 16.5px; font-weight: 700; color: #fff; }
+a.camp .cmeta { font-size: 12px; color: #8ba0c4; margin-top: 8px; line-height: 1.75; }
+a.camp .cstats { display: flex; gap: 14px; margin-top: 11px; flex-wrap: wrap; }
+a.camp .cstat { display: flex; flex-direction: column; }
+a.camp .cstat b { font-size: 17px; color: #cfe0f7; font-variant-numeric: tabular-nums; }
+a.camp .cstat span { font-size: 10.5px; color: var(--ink-soft); }
+
+/* ---------- תגי מצב ---------- */
+.badge {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 600;
+}
+.badge.ok { background: rgba(34,195,154,.15); color: var(--ok); }
+.badge.warn { background: rgba(255,200,87,.15); color: var(--warn); }
+.badge.err { background: rgba(249,115,98,.16); color: var(--err); }
+.badge.pend { background: rgba(79,142,247,.15); color: var(--accent); }
+.badge.idle { background: rgba(159,179,212,.12); color: var(--ink-mid); }
+
+/* ---------- הודעות ---------- */
+.msg { padding: 11px 16px; border-radius: 11px; margin-bottom: 14px; font-size: 13.5px; }
+.msg.ok { background: rgba(34,195,154,.12); color: var(--ok); border: 1px solid rgba(34,195,154,.3); }
+.msg.err { background: rgba(249,115,98,.12); color: var(--err); border: 1px solid rgba(249,115,98,.3); }
+.msg.warn { background: #3a2b16; color: #f0d9a8; border: 1px solid #7a5a25; }
+.warn {
+  background: #3a2b16; border: 1px solid #7a5a25; color: #f0d9a8;
+  border-radius: 10px; padding: 11px 13px; font-size: 12.5px;
+  line-height: 1.65; margin-bottom: 12px;
+}
+.note { font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; }
+
+/* ---------- טפסים ---------- */
+label.field { display: block; font-size: 12.5px; color: var(--ink-mid); margin: 13px 0 5px; font-weight: 600; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; padding: 9px 11px; font-size: 13px; font-family: inherit;
+  background: #0d1424; border: 1px solid #33436b; border-radius: 8px; color: var(--ink);
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+select.inline { width: auto; min-width: 200px; }
+textarea { min-height: 110px; resize: vertical; font-size: 12.5px; line-height: 1.6; }
+input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); vertical-align: middle; margin-inline-end: 7px; }
+input[type=file] { color: var(--ink-mid); font-size: 12.5px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 18px; }
+.form-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ---------- לשוניות פנימיות ---------- */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+.tabs a {
+  background: var(--panel-soft); color: var(--ink-mid); border: 1px solid var(--line-soft);
+  border-radius: 9px; padding: 8px 15px; font-size: 13px; text-decoration: none;
+  font-weight: 600; transition: .15s;
+}
+.tabs a:hover { color: #fff; border-color: var(--accent); }
+.tabs a.on { background: var(--accent-deep); color: #fff; border-color: var(--accent); }
+
+/* ---------- רשימות קבצים ---------- */
+.files { list-style: none; padding: 0; margin: 0; }
+.files li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 13px; background: var(--panel-soft); border: 1px solid var(--line-soft);
+  border-radius: 9px; margin-bottom: 7px; font-size: 13px; gap: 10px;
+}
+
+.log {
+  background: #0d1424; border: 1px solid var(--line-soft); border-radius: 9px;
+  padding: 13px; font-family: Consolas, "Courier New", monospace; font-size: 12px;
+  line-height: 1.75; max-height: 340px; overflow: auto; white-space: pre-wrap;
+  color: var(--ink-mid);
+}
+.link-box {
+  direction: ltr; text-align: left; font-family: Consolas, monospace; font-size: 12.5px;
+  background: #0d1424; padding: 10px 13px; border-radius: 8px; word-break: break-all;
+  border: 1px solid var(--line-soft); color: var(--ink-mid);
+}
+
+.empty { text-align: center; padding: 52px 20px; color: var(--ink-mid); }
+.empty .big { font-size: 18px; color: #fff; margin-bottom: 9px; font-weight: 600; }
+.empty .act-btn { margin-top: 18px; }
+
+footer {
+  text-align: center; color: var(--ink-soft); font-size: 12px;
+  padding: 0 20px 30px; line-height: 1.7;
+}
+
+/* ---------- סלולר ----------
+
+   שלושה שינויים נושאים את כל המסך הצר:
+   סרגל הצד הופך לשורת ניווט עליונה שנכנסת כולה במסך ואינה נגללת,
+   הלשוניות הופכות לרצועה אחת שנגללת לצדדים במקום להישבר לשורות,
+   והרשתות יורדות לעמודה אחת — למעט כרטיסי המספרים, שנשארים שניים
+   בשורה כדי שלא ייווצר טור אינסופי של כרטיסים ריקים. */
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+
+  /* שורת ניווט עליונה: המותג בצד אחד, הקישורים בשני. אין גלילה
+     אופקית — הקישורים מצטמצמים עד שהם נכנסים. */
+  .sidebar {
+    width: auto; flex: none; flex-direction: row; align-items: center;
+    justify-content: space-between; gap: 8px; padding: 9px 12px;
+    overflow: visible; position: sticky; top: 0; z-index: 30;
+  }
+  .brand { padding: 0; flex: 0 1 auto; min-width: 0; gap: 8px; }
+  .brand-mark { width: 30px; height: 30px; font-size: 15px; flex: 0 0 auto; }
+  .brand-text strong {
+    font-size: 13px; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .brand-text span { display: none; }
+  .side-nav { flex-direction: row; gap: 5px; flex: 0 0 auto; }
+  .side-nav a { padding: 7px 10px; font-size: 12.5px; white-space: nowrap; }
+  .side-nav .ico { display: none; }
+  .side-foot { display: none; }
+
+  header { padding: 12px 14px; }
+  header h1 { font-size: 17px; }
+  .camp-head .ctitle { font-size: 18px; }
+  .camp-head .cdesc { font-size: 12px; }
+  .head-row { gap: 10px; }
+  .head-actions { width: 100%; }
+  .head-actions .act-btn { flex: 1 1 auto; text-align: center; }
+
+  /* לשוניות: רצועה אחת שנגללת לצדדים. שבירה לשלוש שורות לא שוות
+     הסתירה איזו לשונית פעילה ואכלה חצי מסך. */
+  .nav {
+    flex-wrap: nowrap; overflow-x: auto; padding: 10px 12px 0; gap: 6px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a {
+    flex: 0 0 auto; padding: 9px 13px; font-size: 12.5px;
+    scroll-snap-align: start;
+  }
+
+  .wrap { padding: 14px 12px 40px; }
+  h2 { font-size: 14px; margin: 18px 0 10px; }
+
+  /* כרטיסי מספרים — שניים בשורה. כרטיס הסיכום לבדו על הרוחב. */
+  .kpis { gap: 8px; }
+  .tile { flex: 1 1 calc(50% - 4px); min-width: 0; padding: 12px 13px; }
+  .tile .val { font-size: 21px; }
+  .tile .lab { font-size: 11.5px; }
+  .tile.total { flex: 1 1 100%; }
+  .tile.total .val { font-size: 30px; }
+
+  .cpl-row { flex-wrap: wrap; }
+  .cpl-card { flex: 1 1 calc(50% - 6px); min-width: 0; padding: 13px 10px; }
+  .cpl-card .cpl-value { font-size: 25px; }
+  .cpl-card--main .cpl-value { font-size: 28px; }
+
+  .barstack, .pies, .maprow, .headline, .load-row, .cards, .grid {
+    grid-template-columns: 1fr;
+  }
+  .fbox { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 1fr; }
+
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.t { font-size: 12px; }
+  table.t th, table.t td { padding: 6px 8px; }
+
+  /* בגרף העמודות שם הפריט הוא העיקר — הוא מקבל את המקום, והכמות
+     מצטמצמת. תווית חתוכה באמצע אינה שווה דבר. */
+  td.blab { width: 40%; max-width: 40%; font-size: 11.5px; }
+  td.bval { width: 52px; font-size: 11px; }
+  .bpct { font-size: 10px; padding-inline-start: 6px; }
+
+  /* שורת בחירת סוג הנתונים — נגללת לצדדים, כמו הלשוניות */
+  .tchips {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tchips::-webkit-scrollbar { display: none; }
+  .tchip { flex: 0 0 auto; padding: 7px 12px; font-size: 12px; }
+  .tpanel-actions { gap: 6px; }
+  .tpanel-actions .act-btn { flex: 1 1 auto; text-align: center; }
+  .tpanel-actions input[type=file] { flex: 1 1 100%; }
+
+  .ctl { padding: 10px 12px; gap: 10px; }
+  .ctl-state { margin-inline-start: 0; width: 100%; }
+  .rangebox { padding: 12px 14px; }
+  .range-date { font-size: 12px; padding: 3px 9px; }
+  .months { gap: 5px; }
+  .month { padding: 4px 9px; font-size: 11px; }
+
+  .modal { padding: 12px; }
+  .modal-box { max-height: 88vh; }
+  .funnelsvg { max-width: 100%; }
+  .files li { flex-direction: column; align-items: stretch; gap: 7px; }
+  .export-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+
+  .maphead { flex-wrap: wrap; }
+  .pielegend { font-size: 11px; }
+}
+
+/* ---------- מסך צר במיוחד ---------- */
+@media (max-width: 430px) {
+  .brand-text { display: none; }
+  .side-nav a { padding: 7px 9px; font-size: 12px; }
+  .tile .val { font-size: 19px; }
+  .tile.total .val { font-size: 27px; }
+  .swatch { width: 24px; height: 24px; }
+  .chip { padding: 8px 11px; font-size: 12.5px; }
+  .cpl-card .cpl-value { font-size: 22px; }
+  td.blab { width: 44%; max-width: 44%; font-size: 11px; }
+  td.bval { width: 46px; font-size: 10.5px; }
+  .camp-head .ctitle { font-size: 16.5px; }
+  .wrap { padding: 12px 10px 36px; }
+}
+
+.demo-banner {
+  background: #3a2b16; border-bottom: 1px solid #7a5a25; color: #f0d9a8;
+  padding: 10px 16px; font-size: 12.5px; text-align: center; line-height: 1.6;
+}
+</style>
+<script src="data/bundle.js"></script>
+<script src="assets/dashboard.js?v=5c803efd70" defer></script>
+</head>
+<body>
+<div class="demo-banner">
+  🔒 <b>אתר הדגמה — כל הנתונים מוגרלים לחלוטין.</b>
+  המספרים אינם משקפים נתוני אמת, ואין באתר שום פרט מזהה.
+  ההגדרות וטעינת הנתונים קיימות רק בגרסת השרת הפנימית.
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">ק</div>
+      <div class="brand-text">
+        <strong>ניתוח קמפיין גיוס</strong>
+        <span>חטיבת גיוס ושחרור</span>
+      </div>
+    </div>
+    <nav class="side-nav"><a class="on" href="index.html"><span class="ico">▦</span><span>קמפיינים</span></a><a class="" href="annual.html"><span class="ico">◱</span><span>לוח בקרה שנתי</span></a></nav>
+    <div class="side-foot">
+      אתר הדגמה · נתונים מוגרלים.<br>
+      ההגדרות וטעינת הנתונים בגרסת השרת בלבד.
+    </div>
+  </aside>
+
+  <div class="main">
+    <header>
+      <div class="head-row">
+        <div class="head-main">
+          <div class="camp-head">
+            <div class="ctitle" id="demo-title">ניתוח קמפיין גיוס</div>
+            <div class="csub" id="demo-sub">הדגמה</div>
+            <div class="cdates" id="demo-range"></div>
+          </div>
+        </div>
+        <div class="head-actions">
+          <select class="inline" id="demo-campaign"><option value="קמפיין אביב 2026">קמפיין אביב 2026</option><option value="קמפיין חורף 2025">קמפיין חורף 2025</option></select>
+        </div>
+      </div>
+    </header>
+
+    <div class="nav"><a class="" href="index.html">הגשות לפי ימים</a><a class="" href="funnel.html">משפך הגיוס</a><a class="" href="map.html">מפת הגשות</a><a class="on" href="profile.html">פרופיל דמוגרפי</a><a class="" href="performance.html">פלטפורמות וביצועי קמפיין</a><a class="" href="comparison.html">השוואה לקמפיינים קודמים</a></div>
+    <div class="wrap">
+      <div id="cc-root" data-campaign="קמפיין אביב 2026"></div>
+      <div id="cc-ctl"></div><input type="checkbox" id="cc-drawer-toggle" hidden><div class="drawer" id="cc-drawer"><div class="fbox" id="cc-filters"></div></div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var box = document.getElementById('cc-drawer-toggle');
+  var drawer = document.getElementById('cc-drawer');
+  if (!box || !drawer) return;
+  box.addEventListener('change', function () {
+    drawer.classList.toggle('open', box.checked);
+  });
+});
+</script>
+
+      
+      <h2>פרופיל מגישי המועמדות</h2>
+      <div class="headline" id="cc-headline-demo"></div>
+      <div class="pies" id="cc-pies"
+           data-dims="religion,gender,age,education,marital,rovai"></div>
+      <h2>מאפייני ההגשות</h2>
+      <div class="headline" id="cc-headline-submit"></div>
+      <div class="pies" id="cc-pies-2" data-dims="area,daypart,source"></div></div>
+
+    <footer>אתר הדגמה בלבד · נתונים מוגרלים · ללא כל פרט מזהה</footer>
+  </div>
+</div>
+
+<script>
+window.CC_STATIC = {"campaigns": [{"id": "קמפיין אביב 2026", "name": "קמפיין אביב 2026", "subtitle": "הדגמה — נתונים מוגרלים", "range": "01/03/2026 – 15/04/2026", "file": "קמפיין_אביב_2026.json"}, {"id": "קמפיין חורף 2025", "name": "קמפיין חורף 2025", "subtitle": "הדגמה — נתונים מוגרלים", "range": "01/11/2025 – 20/12/2025", "file": "קמפיין_חורף_2025.json"}]};
+
+document.addEventListener('DOMContentLoaded', function () {
+  var box = document.getElementById('cc-drawer-toggle');
+  var drawer = document.getElementById('cc-drawer');
+  if (box && drawer) {
+    box.addEventListener('change', function () {
+      drawer.classList.toggle('open', box.checked);
+    });
+  }
+
+  var picker = document.getElementById('demo-campaign');
+  var saved = localStorage.getItem('cc-demo-campaign');
+  if (saved && [].some.call(picker.options, function (o) { return o.value === saved; })) {
+    picker.value = saved;
+  }
+
+  function head(id) {
+    var entry = window.CC_STATIC.campaigns.find(function (c) { return c.id === id; });
+    document.getElementById('demo-title').textContent = entry.name;
+    document.getElementById('demo-sub').textContent = entry.subtitle;
+    document.getElementById('demo-range').textContent = entry.range;
+    var root = document.getElementById('cc-root');
+    if (root) root.dataset.campaign = id;
+  }
+  picker.addEventListener('change', function () {
+    localStorage.setItem('cc-demo-campaign', picker.value);
+    head(picker.value);
+    if (window.loadCampaign) loadCampaign(picker.value);
+  });
+  head(picker.value);
+});
+</script>
+</body>
+</html>
